@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card } from '@material-ui/core';
 import { TextField, Button } from '@material-ui/core';
-import axios from 'axios';
 
 import { axiosWithAuth } from '../utils/axiosWithAuth';
 
@@ -12,7 +11,13 @@ class Friends extends React.Component{
       name: '',
       age: '',
       email: ''
-    }
+    },
+    editedFriend: {
+      name: '',
+      age: '',
+      email: ''
+    },
+    editing: false
   };
 
   componentDidMount() {
@@ -42,6 +47,16 @@ class Friends extends React.Component{
     });
   };
 
+  handleEditingChange = e => {
+    this.setState({
+      ...this.state,
+      editedFriend: {
+        ...this.state.editedFriend,
+        [e.target.name]: e.target.value
+      }
+    });
+  };
+
   addFriend = (e) => {
     e.preventDefault();
     console.log(this.state)
@@ -62,7 +77,7 @@ class Friends extends React.Component{
       .catch(err => console.log(err));
   }
 
-  deleteFriend = (id) => {
+  deleteFriend = id => {
     console.log(id)
     axiosWithAuth()
       .delete(`/api/friends/${id}`)
@@ -71,6 +86,26 @@ class Friends extends React.Component{
         this.setState({
           ...this.state,
           friends: res.data,
+        })
+      })
+      .catch(err => console.log(err));
+  }
+
+  editFriend = friend => {
+    console.log(friend)
+    axiosWithAuth()
+      .put(`/api/friends/${friend.id}`, this.state.editedFriend)
+      .then(res => {
+        console.log(res)
+        this.setState({
+          ...this.state,
+          friends: res.data,
+          editedFriend: {
+            name: '',
+            age: '',
+            email: '',
+            id: 0
+          }
         })
       })
       .catch(err => console.log(err));
@@ -132,6 +167,44 @@ class Friends extends React.Component{
               </Button>
             </form>
           </Card>
+          <Card>
+            <form onSubmit={(e) => e.preventDefault()}
+              style={{
+                margin: '20px', 
+                width: '400px',
+                color: 'white',
+                borderRadius: '5px',
+                display: 'flex',
+                flexFlow: 'column',
+              }}
+            >
+              <TextField
+                id="name-input"
+                label="Name"
+                type="name"
+                name="name"
+                value={this.state.editedFriend.name}
+                onChange={this.handleEditingChange}
+              />
+              <TextField
+                id="email-input"
+                label="Email"
+                type="email"
+                name="email"
+                value={this.state.editedFriend.email}
+                onChange={this.handleEditingChange}
+              />
+              <TextField
+                id="age-input"
+                label="Age"
+                type="age"
+                name="age"
+                value={this.state.editedFriend.age}
+                onChange={this.handleEditingChange}
+              />
+              <h1 style={{color: 'black'}}>Edit a Friend!</h1>
+            </form>
+          </Card>
           {this.state.friends.map(friend => (
             <Card 
               key={friend.id}
@@ -158,6 +231,7 @@ class Friends extends React.Component{
                 <Button
                   variant="contained"
                   color="primary"
+                  onClick={() => this.editFriend(friend)}
                   >
                   Edit Friend!
                 </Button>
